@@ -84,5 +84,18 @@ public class PaymentServiceImpl implements PaymentService {
         return payment;
     }
 
+    @Override
+    public List<Payment> getDuePaymentEntities() {
+        return this.paymentRepository.findDuePayments(PaymentStatus.PENDING, LocalDateTime.now());
+    }
 
+    @Override
+    public void markPaymentAsSuccessful(Payment payment){
+        if(payment.getPaymentStatus() == PaymentStatus.PENDING){
+            payment.setPaymentStatus(PaymentStatus.SUCCESSFUL);
+        }else{
+            throw new InvalidStatusException("Payment status is not pending!");
+        }
+
+    }
 }

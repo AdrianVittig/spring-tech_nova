@@ -11,10 +11,7 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CheckoutDto {
-    private Long paymentId;
-    private Long orderId;
+public class SuccessfulPaymentResult {
     private Long invoiceId;
-    private Long paymentStatus;
     private BigDecimal balanceAfterPayment;
 }
