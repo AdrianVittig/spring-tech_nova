@@ -98,4 +98,16 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
     }
+
+    @Override
+    @Transactional
+    public void cancelPendingPayment(Long orderId) {
+        Payment payment = this.paymentRepository.findPaymentByOrderIdForUpdate(orderId).orElseThrow(
+                () -> new ObjectNotFoundException("Invalid input")
+        );
+        if(payment.getPaymentStatus() != PaymentStatus.PENDING){
+            throw new InvalidStatusException("Status not pending");
+        }
+        payment.setPaymentStatus(PaymentStatus.CANCELLED);
+    }
 }

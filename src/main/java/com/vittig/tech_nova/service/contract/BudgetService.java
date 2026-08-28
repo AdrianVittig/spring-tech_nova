@@ -8,4 +8,5 @@ import java.math.BigDecimal;
 public interface BudgetService {
     BigDecimal getBalance();
     BudgetDto increaseBalance(BigDecimal amount);
+    BudgetDto decreaseBalance(BigDecimal amount);
 }

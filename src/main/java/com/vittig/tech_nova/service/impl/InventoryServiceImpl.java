@@ -60,4 +60,10 @@ public class InventoryServiceImpl implements InventoryService {
         );
         return inventory.getStockQuantity() >= requiredQuantity;
     }
+
+    @Override
+    public Inventory getInventoryByProductIdForUpdate(Long productId) {
+        return this.inventoryRepository.findByProductIdForUpdate(productId).orElseThrow(
+                () -> new ObjectNotFoundException("Inventory not found!"));
+    }
 }

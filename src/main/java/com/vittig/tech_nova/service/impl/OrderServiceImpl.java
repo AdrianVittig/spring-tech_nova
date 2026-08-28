@@ -90,4 +90,12 @@ public class OrderServiceImpl implements OrderService {
             order.setOrderStatus(OrderStatus.PAID);
         }
     }
+
+    @Override
+    @Transactional
+    public Order getOrderByIdEntityForUpdate(Long id) {
+        return this.orderRepository.findByIdForUpdate(id).orElseThrow(
+                () -> new ObjectNotFoundException("Object not found!")
+        );
+    }
 }

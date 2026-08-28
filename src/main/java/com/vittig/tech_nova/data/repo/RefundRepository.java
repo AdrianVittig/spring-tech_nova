@@ -1,13 +1,15 @@
 package com.vittig.tech_nova.data.repo;
 
-import com.vittig.tech_nova.data.entity.Order;
+import com.vittig.tech_nova.data.entity.Refund;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 
+import java.util.List;
 import java.util.Optional;
 
-public interface OrderRepository extends JpaRepository<Order, Long> {
+public interface RefundRepository extends JpaRepository<Refund, Long> {
+    List<Refund> findAllRefundsByOrderId(Long orderId);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<Order> findByIdForUpdate(Long orderId);
+    Optional<Refund> findRefundByIdEntityForUpdate(Long refundId);
 }

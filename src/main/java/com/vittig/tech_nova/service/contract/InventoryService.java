@@ -7,4 +7,5 @@ public interface InventoryService {
     Inventory decreaseStock(Long productId, Integer quantity);
     Inventory increaseStock(Long productId, Integer quantity);
     boolean hasEnoughStock(Long productId, Integer requiredQuantity);
+    Inventory getInventoryByProductIdForUpdate(Long productId);
 }

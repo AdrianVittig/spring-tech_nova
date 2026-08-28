@@ -9,7 +9,9 @@ import com.vittig.tech_nova.service.contract.ProductService;
 import com.vittig.tech_nova.service.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -34,5 +36,19 @@ public class ProductServiceImpl implements ProductService {
     public ProductDto createProduct(CreateProductDto createProductDto) {
         Product product = modelMapper.map(createProductDto, Product.class);
         return this.modelMapper.map(this.productRepository.save(product), ProductDto.class);
+    }
+
+    @Override
+    public Product getProductEntityById(Long id) {
+        return this.productRepository.findById(id).orElseThrow(
+                () -> new ObjectNotFoundException("Object not found!"));
+    }
+
+    @Override
+    @Transactional
+    public BigDecimal updateAverageCost(Long productId, BigDecimal newCost) {
+        Product product = this.getProductEntityById(productId);
+        product.setPriceToBuyFromReseller(newCost);
+        return newCost;
     }
 }

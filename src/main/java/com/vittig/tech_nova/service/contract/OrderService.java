@@ -13,4 +13,6 @@ public interface OrderService {
     OrderDto createOrder(CreateOrderDto createOrderDto);
     Order getOrderByIdEntity(Long id);
     void markOrderAsPaid(Order order);
+    Order getOrderByIdEntityForUpdate(Long id);
+
 }

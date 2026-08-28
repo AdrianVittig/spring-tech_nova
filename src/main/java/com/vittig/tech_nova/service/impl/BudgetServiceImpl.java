@@ -38,4 +38,20 @@ public class BudgetServiceImpl implements BudgetService {
         budget.setBalance(budget.getBalance().add(amount));
         return modelMapper.map(this.budgetRepository.save(budget), BudgetDto.class);
     }
+
+    @Override
+    @Transactional
+    public BudgetDto decreaseBalance(BigDecimal amount) {
+        Budget budget = this.budgetRepository.getBudgetForUpdate(budgetId).orElseThrow(
+                () -> new ObjectNotFoundException("Object not found!")
+        );
+        if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0){
+            throw new ObjectNotFoundException("Object not found!");
+        }
+        if(budget.getBalance().subtract(amount).compareTo(BigDecimal.ZERO) < 0){
+            throw new ObjectNotFoundException("Insufficient balance!");
+        }
+        budget.setBalance(budget.getBalance().subtract(amount));
+        return modelMapper.map(this.budgetRepository.save(budget), BudgetDto.class);
+    }
 }

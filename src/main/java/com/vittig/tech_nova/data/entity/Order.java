@@ -30,6 +30,6 @@ public class Order extends BaseEntity{
     @OneToOne(mappedBy = "order")
     private Invoice invoice;
     private BigDecimal total;
-    @OneToOne(mappedBy = "order")
-    private FinancialTransaction financialTransaction;
+    @OneToMany(mappedBy = "order")
+    private List<FinancialTransaction> financialTransactions;
 }

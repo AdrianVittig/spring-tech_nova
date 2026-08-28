@@ -4,19 +4,21 @@ import com.vittig.tech_nova.data.dto.transaction.FTDto;
 import com.vittig.tech_nova.data.dto.transaction.UpdateFTDto;
 import com.vittig.tech_nova.data.entity.FinancialTransaction;
 import com.vittig.tech_nova.data.entity.Order;
+import com.vittig.tech_nova.data.entity.PurchaseOrder;
+import com.vittig.tech_nova.data.entity.Refund;
 import com.vittig.tech_nova.data.repo.FinancialTransactionRepository;
-import com.vittig.tech_nova.data.util.ModelMapperUtil;
-import com.vittig.tech_nova.data.util.OrderStatus;
-import com.vittig.tech_nova.data.util.TransactionStatus;
-import com.vittig.tech_nova.data.util.TransactionType;
+import com.vittig.tech_nova.data.util.*;
 import com.vittig.tech_nova.service.contract.FinancialTransactionService;
 import com.vittig.tech_nova.service.contract.OrderService;
+import com.vittig.tech_nova.service.contract.PurchaseOrderService;
+import com.vittig.tech_nova.service.exception.InvalidStatusException;
 import com.vittig.tech_nova.service.exception.InvalidTransactionStatusTransitionException;
 import com.vittig.tech_nova.service.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,6 +27,7 @@ import java.util.List;
 public class FinancialTransactionServiceImpl implements FinancialTransactionService {
     private final OrderService orderService;
     private final FinancialTransactionRepository financialTransactionRepository;
+    private final PurchaseOrderService purchaseOrderService;
     private final ModelMapperUtil modelMapper;
 
     @Override
@@ -68,7 +71,7 @@ public class FinancialTransactionServiceImpl implements FinancialTransactionServ
         if(order.getOrderStatus() != OrderStatus.PAID){
             throw new ObjectNotFoundException("Order is not paid!");
         }
-        if(financialTransactionRepository.existsByOrderId(orderId)){
+        if(financialTransactionRepository.existsByOrderIdAndTransactionType(orderId, TransactionType.INCOMING)){
             throw new ObjectNotFoundException("A FT exists already!");
         }
         financialTransaction.setAmount(order.getTotal());
@@ -77,5 +80,42 @@ public class FinancialTransactionServiceImpl implements FinancialTransactionServ
         financialTransaction.setOrder(order);
         this.financialTransactionRepository.save(financialTransaction);
         return modelMapper.map(financialTransaction, FTDto.class);
+    }
+
+    @Override
+    @Transactional
+    public FTDto recordRefundOutcome(Refund refund) {
+        if(refund == null || refund.getRefundStatus() != RefundStatus.PENDING){
+            throw new InvalidStatusException("Not valid status");
+        }
+        if(this.financialTransactionRepository.existsByRefundId(refund.getId())){
+            throw new InvalidStatusException("Not valid!");
+        }
+        FinancialTransaction financialTransaction = new FinancialTransaction();
+        financialTransaction.setTransactionType(TransactionType.OUTGOING);
+        financialTransaction.setAmount(refund.getAmount());
+        financialTransaction.setOrder(refund.getOrder());
+        financialTransaction.setRefund(refund);
+        financialTransaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
+        financialTransaction.setTime(LocalDateTime.now());
+        return modelMapper.map(this.financialTransactionRepository.save(financialTransaction), FTDto.class);
+    }
+
+    @Override
+    @Transactional
+    public FTDto recordPurchaseExpense(PurchaseOrder purchaseOrder, BigDecimal totalCost) {
+        if(purchaseOrder == null || totalCost == null){
+            throw new InvalidStatusException("Not valid input!");
+        }
+        if(purchaseOrder.getStatus() != PurchaseOrderStatus.CREATED){
+            throw new InvalidStatusException("Not valid status!");
+        }
+        FinancialTransaction financialTransaction = new FinancialTransaction();
+        financialTransaction.setTransactionType(TransactionType.OUTGOING);
+        financialTransaction.setAmount(totalCost);
+        financialTransaction.setPurchaseOrder(purchaseOrder);
+        financialTransaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
+        financialTransaction.setTime(LocalDateTime.now());
+        return modelMapper.map(this.financialTransactionRepository.save(financialTransaction), FTDto.class);
     }
 }

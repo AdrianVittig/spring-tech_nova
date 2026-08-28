@@ -26,7 +26,12 @@ public class FinancialTransaction extends BaseEntity{
     private LocalDateTime time;
     @PositiveOrZero
     private BigDecimal amount;
+    @ManyToOne
+    private Order order;
     @OneToOne
     @JoinColumn(unique = true)
-    private Order order;
+    private Refund refund;
+    @OneToOne
+    @JoinColumn(unique = true)
+    private PurchaseOrder purchaseOrder;
 }

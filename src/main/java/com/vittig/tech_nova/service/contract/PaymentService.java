@@ -16,4 +16,5 @@ public interface PaymentService {
     Payment createPaymentEntity(CreatePaymentDto createPaymentDto);
     List<Payment> getDuePaymentEntities();
     void markPaymentAsSuccessful(Payment payment);
+    void cancelPendingPayment(Long orderId);
 }
