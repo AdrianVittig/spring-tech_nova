@@ -10,7 +10,6 @@ import com.vittig.tech_nova.data.repo.FinancialTransactionRepository;
 import com.vittig.tech_nova.data.util.*;
 import com.vittig.tech_nova.service.contract.FinancialTransactionService;
 import com.vittig.tech_nova.service.contract.OrderService;
-import com.vittig.tech_nova.service.contract.PurchaseOrderService;
 import com.vittig.tech_nova.service.exception.InvalidStatusException;
 import com.vittig.tech_nova.service.exception.InvalidTransactionStatusTransitionException;
 import com.vittig.tech_nova.service.exception.ObjectNotFoundException;
@@ -27,7 +26,6 @@ import java.util.List;
 public class FinancialTransactionServiceImpl implements FinancialTransactionService {
     private final OrderService orderService;
     private final FinancialTransactionRepository financialTransactionRepository;
-    private final PurchaseOrderService purchaseOrderService;
     private final ModelMapperUtil modelMapper;
 
     @Override
@@ -104,8 +102,11 @@ public class FinancialTransactionServiceImpl implements FinancialTransactionServ
     @Override
     @Transactional
     public FTDto recordPurchaseExpense(PurchaseOrder purchaseOrder, BigDecimal totalCost) {
-        if(purchaseOrder == null || totalCost == null){
+        if(purchaseOrder == null || totalCost == null || totalCost.compareTo(BigDecimal.ZERO) <= 0){
             throw new InvalidStatusException("Not valid input!");
+        }
+        if(this.financialTransactionRepository.existsByPurchaseOrderId(purchaseOrder.getId())){
+            throw new InvalidStatusException("Already exists!");
         }
         if(purchaseOrder.getStatus() != PurchaseOrderStatus.CREATED){
             throw new InvalidStatusException("Not valid status!");

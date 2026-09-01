@@ -17,5 +17,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<Payment> findDuePayments(PaymentStatus status, LocalDateTime now);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Payment p WHERE p.order.id = :orderId")
     Optional<Payment> findPaymentByOrderIdForUpdate(Long orderId);
 }

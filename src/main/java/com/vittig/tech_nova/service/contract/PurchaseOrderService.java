@@ -6,4 +6,5 @@ import com.vittig.tech_nova.data.dto.purchase.PurchaseOrderDto;
 public interface PurchaseOrderService {
     PurchaseOrderDto createPurchaseOrder(CreatePurchaseOrderDto createPurchaseOrderDto);
     PurchaseOrderDto completePurchaseOrder(Long purchaseId);
+    void cancelPurchaseOrder(Long purchaseId);
 }

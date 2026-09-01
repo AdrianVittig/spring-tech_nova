@@ -1,9 +1,7 @@
 package com.vittig.tech_nova.data.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import com.vittig.tech_nova.data.util.UserRole;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +16,12 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User extends BaseEntity{
-    @Column(unique = true)
+    @Column(nullable = false)
+    private String passwordHash;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private UserRole userRole;
+    @Column(unique = true, nullable = false)
     private String email;
     @OneToMany(mappedBy = "user")
     private List<Order> orders;

@@ -98,4 +98,17 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         order.setStatus(PurchaseOrderStatus.COMPLETED);
         return modelMapper.map(this.purchaseOrderRepository.save(order), PurchaseOrderDto.class);
     }
+
+    @Override
+    @Transactional
+    public void cancelPurchaseOrder(Long purchaseId) {
+        PurchaseOrder purchaseOrder = this.purchaseOrderRepository.getPurchaseOrderByIdForUpdate(purchaseId).orElseThrow(
+                () -> new ObjectNotFoundException("Object not found!")
+        );
+        if(purchaseOrder.getStatus() != PurchaseOrderStatus.CREATED){
+            throw new InvalidStatusException("Not valid status!");
+        }
+        purchaseOrder.setStatus(PurchaseOrderStatus.CANCELLED);
+        this.purchaseOrderRepository.save(purchaseOrder);
+    }
 }

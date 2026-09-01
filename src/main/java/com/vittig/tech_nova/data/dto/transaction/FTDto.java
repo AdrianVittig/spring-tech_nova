@@ -1,6 +1,5 @@
 package com.vittig.tech_nova.data.dto.transaction;
 
-import com.vittig.tech_nova.data.entity.Order;
 import com.vittig.tech_nova.data.util.TransactionStatus;
 import com.vittig.tech_nova.data.util.TransactionType;
 import lombok.AllArgsConstructor;

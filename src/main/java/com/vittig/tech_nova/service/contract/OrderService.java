@@ -9,10 +9,10 @@ import java.util.Optional;
 
 public interface OrderService {
     List<OrderDto> getAllOrders();
+    List<OrderDto> getOrdersByUserEmail(String email);
     OrderDto getOrderById(Long id);
-    OrderDto createOrder(CreateOrderDto createOrderDto);
+    OrderDto createOrder(CreateOrderDto createOrderDto, String email);
     Order getOrderByIdEntity(Long id);
     void markOrderAsPaid(Order order);
     Order getOrderByIdEntityForUpdate(Long id);
-
 }
