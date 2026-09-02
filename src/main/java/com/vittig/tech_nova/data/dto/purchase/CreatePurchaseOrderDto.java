@@ -1,5 +1,7 @@
 package com.vittig.tech_nova.data.dto.purchase;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,5 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreatePurchaseOrderDto {
+    @NotEmpty
+    @Valid
     private List<CreatePurchaseItemDto> items;
 }

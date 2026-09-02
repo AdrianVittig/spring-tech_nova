@@ -3,6 +3,8 @@ package com.vittig.tech_nova.data.dto.order;
 import com.vittig.tech_nova.data.entity.OrderItem;
 import com.vittig.tech_nova.data.entity.Payment;
 import com.vittig.tech_nova.data.entity.Product;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,5 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateOrderDto {
+    @NotEmpty
+    @Valid
     private List<OrderItemDto> items;
 }

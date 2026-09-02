@@ -2,6 +2,8 @@ package com.vittig.tech_nova.data.dto.transaction;
 
 import com.vittig.tech_nova.data.util.TransactionStatus;
 import com.vittig.tech_nova.data.util.TransactionType;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,8 +16,12 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateFTDto {
+    @NotNull
     private TransactionStatus transactionStatus;
+    @NotNull
     private TransactionType transactionType;
+    @NotNull
+    @Positive
     private BigDecimal amount;
     private Long orderId;
 }

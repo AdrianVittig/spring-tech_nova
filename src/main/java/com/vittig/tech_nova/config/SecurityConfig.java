@@ -58,13 +58,14 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(https -> https
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers( HttpMethod.GET, "/products/**").permitAll()
                         .requestMatchers("/supply/**").hasRole("ADMIN")
                         .requestMatchers("/admin/products/**").hasRole("ADMIN")
                         .requestMatchers("/inventory/**").hasRole("ADMIN")
                         .requestMatchers("/admin/users/**").hasRole("ADMIN")
                         .requestMatchers("/finance/**").hasRole("ADMIN")
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers( HttpMethod.GET, "/products/**").permitAll()
                                 .anyRequest().authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .oauth2ResourceServer(oAuth -> oAuth
