@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -56,5 +57,16 @@ public class InvoiceServiceImpl implements InvoiceService {
         this.invoiceRepository.save(invoice);
         invoice.setInvoiceNumber(invoice.getId());
         return modelMapper.map(invoice, InvoiceDto.class);
+    }
+
+    @Override
+    public InvoiceDto getInvoiceForOrder(Long orderId, String email) {
+        Order order = this.orderService.getOrderByIdEntity(orderId);
+        if(!Objects.equals(order.getUser().getEmail(), email)){
+            throw new ObjectNotFoundException("User associated with this email does not own the order!");
+        }
+        return modelMapper.map(this.invoiceRepository.getInvoiceByOrderId(orderId).orElseThrow(
+                () -> new ObjectNotFoundException("Object not found!")
+        ), InvoiceDto.class);
     }
 }

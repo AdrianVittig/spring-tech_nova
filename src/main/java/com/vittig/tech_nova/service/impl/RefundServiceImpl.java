@@ -3,26 +3,27 @@ package com.vittig.tech_nova.service.impl;
 import com.vittig.tech_nova.data.dto.refund.CreateRefundDto;
 import com.vittig.tech_nova.data.dto.refund.CreateRefundItemDto;
 import com.vittig.tech_nova.data.dto.refund.RefundDto;
-import com.vittig.tech_nova.data.entity.Order;
-import com.vittig.tech_nova.data.entity.OrderItem;
-import com.vittig.tech_nova.data.entity.Refund;
-import com.vittig.tech_nova.data.entity.RefundItem;
+import com.vittig.tech_nova.data.entity.*;
 import com.vittig.tech_nova.data.repo.RefundRepository;
 import com.vittig.tech_nova.data.util.ModelMapperUtil;
 import com.vittig.tech_nova.data.util.OrderStatus;
 import com.vittig.tech_nova.data.util.RefundStatus;
 import com.vittig.tech_nova.service.contract.OrderService;
 import com.vittig.tech_nova.service.contract.RefundService;
+import com.vittig.tech_nova.service.contract.UserService;
 import com.vittig.tech_nova.service.exception.InvalidStatusException;
 import com.vittig.tech_nova.service.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -31,27 +32,42 @@ public class RefundServiceImpl implements RefundService {
     private final RefundRepository refundRepository;
     private final ModelMapperUtil modelMapper;
     private final OrderService orderService;
+    private final UserService userService;
+
     @Override
-    public RefundDto getRefundById(Long id) {
-        return modelMapper.map(this.refundRepository.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found!")
-        ), RefundDto.class);
+    public RefundDto getRefundById(Long id, String email) {
+        Refund refund =this.refundRepository.findById(id).orElseThrow(
+                () -> new ObjectNotFoundException("Object not found!"));
+        if(!Objects.equals(refund.getOrder().getUser().getEmail(), email)){
+            throw new ObjectNotFoundException("User associated with this email does not own the order!");
+        }
+        return modelMapper.map(refund, RefundDto.class);
     }
 
     @Override
-    public List<RefundDto> getRefundsByOrderId(Long orderId) {
+    public List<RefundDto> getRefundsByOrderId(Long orderId, String email) {
+        Order order = this.orderService.getOrderByIdEntity(orderId);
+        if(!Objects.equals(order.getUser().getEmail(), email)){
+            throw new ObjectNotFoundException("User associated with this email does not own the order!");
+        }
         return modelMapper.mapList(this.refundRepository.findAllRefundsByOrderId(orderId), RefundDto.class);
     }
 
     @Override
     @Transactional
-    public RefundDto createRefundForOrder(CreateRefundDto createRefundDto) {
+    public RefundDto createRefundForOrder(CreateRefundDto createRefundDto, String email) {
         if(createRefundDto == null || createRefundDto.getItems() == null || createRefundDto.getItems().isEmpty()){
             throw new InvalidStatusException("List is empty!");
         }
         Order order = this.orderService.getOrderByIdEntityForUpdate(createRefundDto.getOrderId());
         if(order.getOrderStatus() != OrderStatus.PAID){
             throw new InvalidStatusException("Order not paid!");
+        }
+
+        User user = this.userService.getUserEntityByEmail(email);
+
+        if(!Objects.equals(order.getUser().getEmail(), email)){
+            throw new ObjectNotFoundException("User associated with this email does not own the order!");
         }
 
         Refund newRefund = new Refund();
@@ -123,10 +139,13 @@ public class RefundServiceImpl implements RefundService {
 
     @Override
     @Transactional
-    public void cancelRefund(Long refundId) {
+    public void cancelRefund(Long refundId, String email) {
         Refund refund = this.getRefundByIdEntityForUpdate(refundId);
         if(refund.getRefundStatus() != RefundStatus.PENDING){
             throw new InvalidStatusException("Not valid status!");
+        }
+        if(!refund.getOrder().getUser().getEmail().equals(email)){
+            throw new ObjectNotFoundException("User associated with this email does not own the order!");
         }
         refund.setRefundStatus(RefundStatus.CANCELLED);
     }

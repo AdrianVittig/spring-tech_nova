@@ -1,7 +1,9 @@
 package com.vittig.tech_nova.service.impl;
 
+import com.vittig.tech_nova.data.dto.inventory.InventoryDto;
 import com.vittig.tech_nova.data.entity.Inventory;
 import com.vittig.tech_nova.data.repo.InventoryRepository;
+import com.vittig.tech_nova.data.util.ModelMapperUtil;
 import com.vittig.tech_nova.service.contract.InventoryService;
 import com.vittig.tech_nova.service.exception.InvalidQuantityException;
 import com.vittig.tech_nova.service.exception.ObjectNotFoundException;
@@ -13,12 +15,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class InventoryServiceImpl implements InventoryService {
     private final InventoryRepository inventoryRepository;
+    private final ModelMapperUtil modelMapper;
 
     @Override
-    public Inventory getInventoryByProductId(Long productId) {
-        return this.inventoryRepository.findByProductId(productId).orElseThrow(
+    public InventoryDto getInventoryByProductId(Long productId) {
+        return modelMapper.map(this.inventoryRepository.findByProductId(productId).orElseThrow(
                 () -> new ObjectNotFoundException("Inventory not found!")
-        );
+        ), InventoryDto.class);
     }
 
     @Override

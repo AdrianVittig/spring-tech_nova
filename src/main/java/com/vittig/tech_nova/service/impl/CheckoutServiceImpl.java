@@ -5,14 +5,18 @@ import com.vittig.tech_nova.data.dto.checkout.CheckoutDto;
 import com.vittig.tech_nova.data.dto.checkout.SuccessfulPaymentResult;
 import com.vittig.tech_nova.data.dto.invoice.InvoiceDto;
 import com.vittig.tech_nova.data.dto.payment.CreatePaymentDto;
+import com.vittig.tech_nova.data.entity.Order;
 import com.vittig.tech_nova.data.entity.Payment;
 import com.vittig.tech_nova.data.util.PaymentStatus;
 import com.vittig.tech_nova.service.contract.*;
+import com.vittig.tech_nova.service.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -25,9 +29,13 @@ public class CheckoutServiceImpl implements CheckoutService {
 
     @Override
     @Transactional
-    public CheckoutDto processPayment(CreatePaymentDto createPaymentDto) {
+    public CheckoutDto processPayment(Long orderId, CreatePaymentDto createPaymentDto, String email) {
         CheckoutDto checkoutDto = new CheckoutDto();
-        Payment payment = this.paymentService.createPaymentEntity(createPaymentDto);
+        Order order = this.orderService.getOrderByIdEntity(orderId);
+        if(!Objects.equals(order.getUser().getEmail(), email)){
+            throw new ObjectNotFoundException("User associated with this email does not own the order!");
+        }
+        Payment payment = this.paymentService.createPaymentEntity(orderId, createPaymentDto);
         if(payment.getPaymentStatus() == PaymentStatus.SUCCESSFUL){
             SuccessfulPaymentResult res = completeSuccessfulPayment(payment);
             checkoutDto.setInvoiceId(res.getInvoiceId());

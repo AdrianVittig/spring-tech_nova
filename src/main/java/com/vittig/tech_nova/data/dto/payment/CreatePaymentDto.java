@@ -13,5 +13,4 @@ import lombok.Setter;
 @NoArgsConstructor
 public class CreatePaymentDto {
     private PaymentMethod paymentMethod;
-    private Long orderId;
 }

@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -38,13 +39,6 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    @Transactional
-    public PaymentDto createPayment(CreatePaymentDto createPaymentDto) {
-        Payment payment = createPaymentEntity(createPaymentDto);
-        return modelMapper.map(payment, PaymentDto.class);
-    }
-
-    @Override
     public Payment getPaymentByEntity(Long id) {
         return this.paymentRepository.findById(id).orElseThrow(
                 () -> new ObjectNotFoundException("Object not found!")
@@ -53,8 +47,8 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public Payment createPaymentEntity(CreatePaymentDto createPaymentDto) {
-        Order order = this.orderService.getOrderByIdEntity(createPaymentDto.getOrderId());
+    public Payment createPaymentEntity(Long orderId, CreatePaymentDto createPaymentDto) {
+        Order order = this.orderService.getOrderByIdEntity(orderId);
         Payment payment = new Payment();
 
         if(order.getOrderStatus() != OrderStatus.AWAITING_PAYMENT){
@@ -109,5 +103,17 @@ public class PaymentServiceImpl implements PaymentService {
             throw new InvalidStatusException("Status not pending");
         }
         payment.setPaymentStatus(PaymentStatus.CANCELLED);
+    }
+
+    @Override
+    @Transactional
+    public PaymentDto getPaymentForOrder(Long orderId, String email) {
+        Payment payment = this.paymentRepository.getPaymentByOrderId(orderId).orElseThrow(
+                () -> new ObjectNotFoundException("Object not found!")
+        );
+        if(!Objects.equals(payment.getOrder().getUser().getEmail(), email)){
+            throw new ObjectNotFoundException("User associated with this email does not own the order!");
+        }
+        return modelMapper.map(payment, PaymentDto.class);
     }
 }

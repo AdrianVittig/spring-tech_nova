@@ -10,4 +10,5 @@ public interface InvoiceService {
     List<InvoiceDto> getAllInvoices();
     InvoiceDto getInvoiceById(Long id);
     InvoiceDto createInvoiceForOrder(Long orderId);
+    InvoiceDto getInvoiceForOrder(Long orderId, String email);
 }

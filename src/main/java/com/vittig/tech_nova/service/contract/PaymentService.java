@@ -11,10 +11,11 @@ import java.util.List;
 public interface PaymentService {
     List<PaymentDto> getAllPayments();
     PaymentDto getPaymentById(Long id);
-    PaymentDto createPayment(CreatePaymentDto createPaymentDto);
     Payment getPaymentByEntity(Long id);
-    Payment createPaymentEntity(CreatePaymentDto createPaymentDto);
+    Payment createPaymentEntity(Long orderId, CreatePaymentDto createPaymentDto);
     List<Payment> getDuePaymentEntities();
     void markPaymentAsSuccessful(Payment payment);
     void cancelPendingPayment(Long orderId);
+
+    PaymentDto getPaymentForOrder(Long orderId, String email);
 }
