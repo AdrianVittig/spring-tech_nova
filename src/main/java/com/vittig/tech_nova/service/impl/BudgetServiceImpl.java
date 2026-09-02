@@ -19,10 +19,9 @@ import java.math.BigDecimal;
 public class BudgetServiceImpl implements BudgetService {
     private final BudgetRepository budgetRepository;
     private final ModelMapperUtil modelMapper;
-    private final Long budgetId = 1L;
     @Override
     public BigDecimal getBalance() {
-        Budget budget = this.budgetRepository.getBudget(budgetId).orElseThrow(
+        Budget budget = this.budgetRepository.getBudget().orElseThrow(
                 () -> new ObjectNotFoundException("Budget not found.")
         );
         return budget.getBalance();
@@ -31,7 +30,7 @@ public class BudgetServiceImpl implements BudgetService {
     @Override
     @Transactional
     public BudgetDto increaseBalance(BigDecimal amount) {
-        Budget budget = this.budgetRepository.getBudgetForUpdate(budgetId).orElseThrow(
+        Budget budget = this.budgetRepository.getBudgetForUpdate().orElseThrow(
                 () -> new ObjectNotFoundException("Budget not found.")
         );
         if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0){
@@ -44,7 +43,7 @@ public class BudgetServiceImpl implements BudgetService {
     @Override
     @Transactional
     public BudgetDto decreaseBalance(BigDecimal amount) {
-        Budget budget = this.budgetRepository.getBudgetForUpdate(budgetId).orElseThrow(
+        Budget budget = this.budgetRepository.getBudgetForUpdate().orElseThrow(
                 () -> new ObjectNotFoundException("Budget not found.")
         );
         if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0){

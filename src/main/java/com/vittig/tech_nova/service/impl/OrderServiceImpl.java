@@ -14,6 +14,7 @@ import com.vittig.tech_nova.data.util.ModelMapperUtil;
 import com.vittig.tech_nova.data.util.OrderStatus;
 import com.vittig.tech_nova.service.contract.InventoryService;
 import com.vittig.tech_nova.service.contract.OrderService;
+import com.vittig.tech_nova.service.contract.PricingService;
 import com.vittig.tech_nova.service.contract.UserService;
 import com.vittig.tech_nova.service.exception.InvalidInputException;
 import com.vittig.tech_nova.service.exception.InvalidQuantityException;
@@ -35,6 +36,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final InventoryService inventoryService;
     private final UserService userService;
+    private final PricingService pricingService;
 
     @Override
     public List<OrderDto> getAllOrders() {
@@ -73,7 +75,7 @@ public class OrderServiceImpl implements OrderService {
            if(item.getQuantity() == null || item.getQuantity() <= 0){
                throw new InvalidQuantityException("Order item quantity must be greater than zero.");
            }
-           BigDecimal priceToSell = product.getPriceToBuyFromReseller().multiply(new BigDecimal("1.20"));
+           BigDecimal priceToSell = this.pricingService.calculateSellingPrice(product.getPriceToBuyFromReseller());
            total = total.add(priceToSell.multiply(BigDecimal.valueOf(item.getQuantity())));
            OrderItem orderItem = new OrderItem();
            orderItem.setProduct(product);

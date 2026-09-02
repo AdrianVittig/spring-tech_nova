@@ -6,10 +6,7 @@ import com.vittig.tech_nova.data.dto.order.CreateOrderDto;
 import com.vittig.tech_nova.data.dto.order.OrderDto;
 import com.vittig.tech_nova.data.dto.payment.CreatePaymentDto;
 import com.vittig.tech_nova.data.dto.payment.PaymentDto;
-import com.vittig.tech_nova.service.contract.CheckoutService;
-import com.vittig.tech_nova.service.contract.InvoiceService;
-import com.vittig.tech_nova.service.contract.OrderService;
-import com.vittig.tech_nova.service.contract.PaymentService;
+import com.vittig.tech_nova.service.contract.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,6 +23,7 @@ public class OrderController {
     private final InvoiceService invoiceService;
     private final PaymentService paymentService;
     private final CheckoutService checkoutService;
+    private final OrderCancellationService orderCancellationService;
 
     @GetMapping
     public List<OrderDto> getCurrentUserOrders(Authentication authentication){
@@ -52,5 +50,11 @@ public class OrderController {
     @ResponseStatus(HttpStatus.CREATED)
     public CheckoutDto processPayment(@PathVariable Long orderId, @Valid @RequestBody CreatePaymentDto createPaymentDto, Authentication authentication){
         return this.checkoutService.processPayment(orderId, createPaymentDto, authentication.getName());
+    }
+
+    @PostMapping("/{orderId}/cancel")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void cancelOrder(@PathVariable Long orderId, Authentication authentication){
+        this.orderCancellationService.cancelOrder(orderId, authentication.getName());
     }
 }

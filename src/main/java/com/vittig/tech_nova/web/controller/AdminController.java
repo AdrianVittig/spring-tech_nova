@@ -1,6 +1,5 @@
 package com.vittig.tech_nova.web.controller;
 
-import com.vittig.tech_nova.data.dto.budget.BudgetDto;
 import com.vittig.tech_nova.data.dto.inventory.InventoryDto;
 import com.vittig.tech_nova.data.dto.invoice.InvoiceDto;
 import com.vittig.tech_nova.data.dto.order.OrderDto;
