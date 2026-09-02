@@ -11,6 +11,8 @@ import com.vittig.tech_nova.data.repo.PurchaseOrderRepository;
 import com.vittig.tech_nova.data.util.ModelMapperUtil;
 import com.vittig.tech_nova.data.util.PurchaseOrderStatus;
 import com.vittig.tech_nova.service.contract.*;
+import com.vittig.tech_nova.service.exception.InvalidInputException;
+import com.vittig.tech_nova.service.exception.InvalidQuantityException;
 import com.vittig.tech_nova.service.exception.InvalidStatusException;
 import com.vittig.tech_nova.service.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -37,10 +39,10 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     @Transactional
     public PurchaseOrderDto createPurchaseOrder(CreatePurchaseOrderDto createPurchaseOrderDto) {
         if(createPurchaseOrderDto == null){
-            throw new ObjectNotFoundException("dto null");
+            throw new InvalidInputException("Purchase order data is required.");
         }
         if(createPurchaseOrderDto.getItems() == null || createPurchaseOrderDto.getItems().isEmpty()){
-            throw new ObjectNotFoundException("Empty list");
+            throw new InvalidInputException("Purchase order must contain at least one item.");
         }
         List<PurchaseItem> list = new ArrayList<>();
         PurchaseOrder order = new PurchaseOrder();
@@ -48,14 +50,14 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         order.setCreatedAt(LocalDateTime.now());
         for(CreatePurchaseItemDto item : createPurchaseOrderDto.getItems()){
             if(item.getQuantity() == null || item.getUnitCost() == null || item.getProductId() == null){
-                throw new ObjectNotFoundException("item properties null!");
+                throw new InvalidInputException("Product, quantity and unit cost are required for every purchase item.");
             }
             Product product = this.productService.getProductEntityById(item.getProductId());
             if(item.getQuantity() <= 0){
-                throw new InvalidStatusException("Quantity must be greater than 0!");
+                throw new InvalidQuantityException("Purchase quantity must be greater than zero.");
             }
             if(item.getUnitCost().compareTo(BigDecimal.ZERO) <= 0){
-                throw new InvalidStatusException("Price must be greater than 0!");
+                throw new InvalidInputException("Unit cost must be greater than zero.");
             }
             PurchaseItem purchaseItem = new PurchaseItem();
             purchaseItem.setProduct(product);
@@ -74,10 +76,10 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         BigDecimal totalCost = BigDecimal.ZERO;
         PurchaseOrder order = this.purchaseOrderRepository.getPurchaseOrderByIdForUpdate(purchaseId)
                 .orElseThrow(
-                        () -> new ObjectNotFoundException("Object not found!")
+                        () -> new ObjectNotFoundException("Purchase order not found.")
                 );
         if(order.getStatus() != PurchaseOrderStatus.CREATED){
-            throw new InvalidStatusException("Not valid status! Must be created!");
+            throw new InvalidStatusException("Only a purchase order in CREATED status can be completed.");
         }
         for(PurchaseItem item : order.getItems()){
             BigDecimal currRow = item.getUnitCostSnapshot().multiply(BigDecimal.valueOf(item.getQuantity()));
@@ -103,10 +105,10 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
     @Transactional
     public void cancelPurchaseOrder(Long purchaseId) {
         PurchaseOrder purchaseOrder = this.purchaseOrderRepository.getPurchaseOrderByIdForUpdate(purchaseId).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found!")
+                () -> new ObjectNotFoundException("Purchase order not found.")
         );
         if(purchaseOrder.getStatus() != PurchaseOrderStatus.CREATED){
-            throw new InvalidStatusException("Not valid status!");
+            throw new InvalidStatusException("Only a purchase order in CREATED status can be cancelled.");
         }
         purchaseOrder.setStatus(PurchaseOrderStatus.CANCELLED);
         this.purchaseOrderRepository.save(purchaseOrder);

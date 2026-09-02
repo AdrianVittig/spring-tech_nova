@@ -8,8 +8,7 @@ import com.vittig.tech_nova.data.repo.UserRepository;
 import com.vittig.tech_nova.data.util.UserRole;
 import com.vittig.tech_nova.service.contract.AuthService;
 import com.vittig.tech_nova.service.contract.JwtService;
-import com.vittig.tech_nova.service.exception.InvalidStatusException;
-import com.vittig.tech_nova.service.exception.ObjectNotFoundException;
+import com.vittig.tech_nova.service.exception.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,16 +25,16 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public AuthResponseDto register(RegisterUserDto dto) {
         if(dto == null){
-            throw new ObjectNotFoundException("Not valid input!");
+            throw new InvalidInputException("Email and password are required.");
         }
         if(dto.getEmail() == null){
-            throw new ObjectNotFoundException("Not valid input!");
+            throw new InvalidInputException("Email and password are required.");
         }
         if(dto.getPassword() == null){
-            throw new ObjectNotFoundException("Not valid input!");
+            throw new InvalidInputException("Email and password are required.");
         }
         if(this.userRepository.existsByEmail(dto.getEmail())){
-            throw new InvalidStatusException("Account already exists!");
+            throw new ConflictException("A user with this email already exists.");
         }
         User user = new User();
         user.setEmail(dto.getEmail());
@@ -52,19 +51,19 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public AuthResponseDto login(LoginDto dto) {
         if(dto == null){
-            throw new ObjectNotFoundException("Not valid input!");
+            throw new InvalidInputException("Email and password are required.");
         }
         if(dto.getEmail() == null){
-            throw new ObjectNotFoundException("Not valid input!");
+            throw new InvalidInputException("Email and password are required.");
         }
         if(dto.getPassword() == null){
-            throw new ObjectNotFoundException("Not valid input!");
+            throw new InvalidInputException("Email and password are required.");
         }
         User user = this.userRepository.findByEmail(dto.getEmail()).orElseThrow(
-                () -> new ObjectNotFoundException("User with this email does not exist")
+                () -> new InvalidCredentialsException("Invalid email or password.")
         );
         if(!passwordEncoder.matches(dto.getPassword(), user.getPasswordHash())){
-            throw new InvalidStatusException("Passwords don't match!");
+            throw new InvalidCredentialsException("Invalid email or password.");
         }
 
         AuthResponseDto responseDto = new AuthResponseDto();

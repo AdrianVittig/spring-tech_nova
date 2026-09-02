@@ -1,4 +1,4 @@
-package com.vittig.tech_nova.controller;
+package com.vittig.tech_nova.web.controller;
 
 import com.vittig.tech_nova.data.dto.budget.BudgetDto;
 import com.vittig.tech_nova.data.dto.inventory.InventoryDto;

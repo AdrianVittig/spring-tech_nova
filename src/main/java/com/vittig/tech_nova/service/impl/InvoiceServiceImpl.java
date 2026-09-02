@@ -8,6 +8,8 @@ import com.vittig.tech_nova.data.util.ModelMapperUtil;
 import com.vittig.tech_nova.data.util.OrderStatus;
 import com.vittig.tech_nova.service.contract.InvoiceService;
 import com.vittig.tech_nova.service.contract.OrderService;
+import com.vittig.tech_nova.service.exception.ConflictException;
+import com.vittig.tech_nova.service.exception.ForbiddenOperationException;
 import com.vittig.tech_nova.service.exception.InvalidStatusException;
 import com.vittig.tech_nova.service.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +36,7 @@ public class InvoiceServiceImpl implements InvoiceService {
     @Override
     public InvoiceDto getInvoiceById(Long id) {
         return modelMapper.map(this.invoiceRepository.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found")
+                () -> new ObjectNotFoundException("Invoice not found.")
         ), InvoiceDto.class);
     }
 
@@ -44,10 +46,10 @@ public class InvoiceServiceImpl implements InvoiceService {
         Order order = this.orderService.getOrderByIdEntity(orderId);
         Invoice invoice = new Invoice();
         if(order.getOrderStatus() != OrderStatus.PAID){
-            throw new InvalidStatusException("Not paid!");
+            throw new InvalidStatusException("Order must be paid before an invoice can be created.");
         }
         if(this.invoiceRepository.existsByOrderId(orderId)){
-            throw new ObjectNotFoundException("Invoice exists!");
+            throw new ConflictException("An invoice already exists for this order.");
         }
         BigDecimal total = order.getTotal();
         invoice.setIssuedAt(LocalDateTime.now());
@@ -63,10 +65,10 @@ public class InvoiceServiceImpl implements InvoiceService {
     public InvoiceDto getInvoiceForOrder(Long orderId, String email) {
         Order order = this.orderService.getOrderByIdEntity(orderId);
         if(!Objects.equals(order.getUser().getEmail(), email)){
-            throw new ObjectNotFoundException("User associated with this email does not own the order!");
+            throw new ForbiddenOperationException("You do not have permission to access this invoice.");
         }
         return modelMapper.map(this.invoiceRepository.getInvoiceByOrderId(orderId).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found!")
+                () -> new ObjectNotFoundException("Invoice not found.")
         ), InvoiceDto.class);
     }
 }

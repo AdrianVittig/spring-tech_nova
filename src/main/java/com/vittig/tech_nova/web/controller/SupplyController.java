@@ -1,4 +1,4 @@
-package com.vittig.tech_nova.controller;
+package com.vittig.tech_nova.web.controller;
 
 import com.vittig.tech_nova.data.dto.purchase.CreatePurchaseOrderDto;
 import com.vittig.tech_nova.data.dto.purchase.PurchaseOrderDto;

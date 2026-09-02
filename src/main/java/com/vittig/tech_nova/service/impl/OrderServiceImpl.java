@@ -15,6 +15,7 @@ import com.vittig.tech_nova.data.util.OrderStatus;
 import com.vittig.tech_nova.service.contract.InventoryService;
 import com.vittig.tech_nova.service.contract.OrderService;
 import com.vittig.tech_nova.service.contract.UserService;
+import com.vittig.tech_nova.service.exception.InvalidInputException;
 import com.vittig.tech_nova.service.exception.InvalidQuantityException;
 import com.vittig.tech_nova.service.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDto getOrderById(Long id) {
         return modelMapper.map(this.orderRepository.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found!")
+                () -> new ObjectNotFoundException("Order not found.")
         ), OrderDto.class);
     }
 
@@ -63,14 +64,14 @@ public class OrderServiceImpl implements OrderService {
         User user = this.userService.getUserEntityByEmail(email);
         order.setUser(user);
         if(createOrderDto.getItems() == null || createOrderDto.getItems().isEmpty()){
-            throw new InvalidQuantityException("Item list is empty!");
+            throw new InvalidInputException("Order must contain at least one item.");
         }
        for(OrderItemDto item: createOrderDto.getItems()){
            Product product = this.productRepository.findById(item.getProductId()).orElseThrow(
-                   () -> new ObjectNotFoundException("Object not found!")
+                   () -> new ObjectNotFoundException("Product not found.")
            );
            if(item.getQuantity() == null || item.getQuantity() <= 0){
-               throw new InvalidQuantityException("Quantity should be a real value!");
+               throw new InvalidQuantityException("Order item quantity must be greater than zero.");
            }
            BigDecimal priceToSell = product.getPriceToBuyFromReseller().multiply(new BigDecimal("1.20"));
            total = total.add(priceToSell.multiply(BigDecimal.valueOf(item.getQuantity())));
@@ -90,7 +91,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order getOrderByIdEntity(Long id) {
         return this.orderRepository.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found!")
+                () -> new ObjectNotFoundException("Order not found.")
         );
     }
 
@@ -106,7 +107,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public Order getOrderByIdEntityForUpdate(Long id) {
         return this.orderRepository.findByIdForUpdate(id).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found!")
+                () -> new ObjectNotFoundException("Order not found.")
         );
     }
 

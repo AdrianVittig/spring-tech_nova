@@ -9,6 +9,7 @@ import com.vittig.tech_nova.data.entity.Order;
 import com.vittig.tech_nova.data.entity.Payment;
 import com.vittig.tech_nova.data.util.PaymentStatus;
 import com.vittig.tech_nova.service.contract.*;
+import com.vittig.tech_nova.service.exception.ForbiddenOperationException;
 import com.vittig.tech_nova.service.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -33,7 +34,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         CheckoutDto checkoutDto = new CheckoutDto();
         Order order = this.orderService.getOrderByIdEntity(orderId);
         if(!Objects.equals(order.getUser().getEmail(), email)){
-            throw new ObjectNotFoundException("User associated with this email does not own the order!");
+            throw new ForbiddenOperationException("You do not have permission to perform this operation on this order.");
         }
         Payment payment = this.paymentService.createPaymentEntity(orderId, createPaymentDto);
         if(payment.getPaymentStatus() == PaymentStatus.SUCCESSFUL){

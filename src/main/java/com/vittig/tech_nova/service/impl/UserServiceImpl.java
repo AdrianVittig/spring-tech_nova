@@ -19,7 +19,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public CurrentUserDto getCurrentUser(String email) {
         User user = this.userRepository.findByEmail(email).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found!")
+                () -> new ObjectNotFoundException("User not found.")
         );
         return modelMapper.map(user, CurrentUserDto.class);
     }
@@ -27,7 +27,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserEntityByEmail(String email) {
         return this.userRepository.findByEmail(email).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found!")
+                () -> new ObjectNotFoundException("User not found.")
         );
     }
 }

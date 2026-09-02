@@ -24,7 +24,7 @@ public class RefundProcessingServiceImpl implements RefundProcessingService {
     public void processRefund(Long refundId) {
         Refund refund = this.refundService.getRefundByIdEntityForUpdate(refundId);
         if(refund.getRefundStatus() != RefundStatus.PENDING){
-            throw new InvalidStatusException("Refund should be pending!");
+            throw new InvalidStatusException("Only a pending refund can be processed.");
         }
         this.budgetService.decreaseBalance(refund.getAmount());
         this.financialTransactionService.recordRefundOutcome(refund);

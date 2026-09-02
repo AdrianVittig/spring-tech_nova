@@ -28,7 +28,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDto getProductById(Long id) {
         return modelMapper.map(this.productRepository.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found!")
+                () -> new ObjectNotFoundException("Product not found.")
         ), ProductDto.class);
     }
 
@@ -41,7 +41,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Product getProductEntityById(Long id) {
         return this.productRepository.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found!"));
+                () -> new ObjectNotFoundException("Product not found."));
     }
 
     @Override

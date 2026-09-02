@@ -10,8 +10,7 @@ import com.vittig.tech_nova.data.util.OrderStatus;
 import com.vittig.tech_nova.data.util.PaymentMethod;
 import com.vittig.tech_nova.data.util.PaymentStatus;
 import com.vittig.tech_nova.service.contract.*;
-import com.vittig.tech_nova.service.exception.InvalidStatusException;
-import com.vittig.tech_nova.service.exception.ObjectNotFoundException;
+import com.vittig.tech_nova.service.exception.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,14 +33,14 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     public PaymentDto getPaymentById(Long id) {
         return modelMapper.map(this.paymentRepository.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found!")
+                () -> new ObjectNotFoundException("Payment not found.")
         ), PaymentDto.class);
     }
 
     @Override
     public Payment getPaymentByEntity(Long id) {
         return this.paymentRepository.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found!")
+                () -> new ObjectNotFoundException("Payment not found.")
         );
     }
 
@@ -52,15 +51,15 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = new Payment();
 
         if(order.getOrderStatus() != OrderStatus.AWAITING_PAYMENT){
-            throw new InvalidStatusException("The order is already paid!");
+            throw new InvalidStatusException("Order is not awaiting payment.");
         }
 
         if(this.paymentRepository.existsByOrderId(order.getId())){
-            throw new InvalidStatusException("Order already paid!");
+            throw new ConflictException("A payment already exists for this order.");
         }
 
         if(createPaymentDto.getPaymentMethod() == null){
-            throw new InvalidStatusException("Payment method is not chosen!");
+            throw new InvalidInputException("Payment method is required.");
         }
         payment.setPaymentMethod(createPaymentDto.getPaymentMethod());
 
@@ -88,7 +87,7 @@ public class PaymentServiceImpl implements PaymentService {
         if(payment.getPaymentStatus() == PaymentStatus.PENDING){
             payment.setPaymentStatus(PaymentStatus.SUCCESSFUL);
         }else{
-            throw new InvalidStatusException("Payment status is not pending!");
+            throw new InvalidStatusException("Only a pending payment can be marked as successful.");
         }
 
     }
@@ -97,10 +96,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public void cancelPendingPayment(Long orderId) {
         Payment payment = this.paymentRepository.findPaymentByOrderIdForUpdate(orderId).orElseThrow(
-                () -> new ObjectNotFoundException("Invalid input")
+                () -> new ObjectNotFoundException("Payment not found for this order.")
         );
         if(payment.getPaymentStatus() != PaymentStatus.PENDING){
-            throw new InvalidStatusException("Status not pending");
+            throw new InvalidStatusException("Only a pending payment can be cancelled.");
         }
         payment.setPaymentStatus(PaymentStatus.CANCELLED);
     }
@@ -109,10 +108,10 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public PaymentDto getPaymentForOrder(Long orderId, String email) {
         Payment payment = this.paymentRepository.getPaymentByOrderId(orderId).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found!")
+                () -> new ObjectNotFoundException("Payment not found for this order.")
         );
         if(!Objects.equals(payment.getOrder().getUser().getEmail(), email)){
-            throw new ObjectNotFoundException("User associated with this email does not own the order!");
+            throw new ForbiddenOperationException("You do not have permission to access this payment.");
         }
         return modelMapper.map(payment, PaymentDto.class);
     }

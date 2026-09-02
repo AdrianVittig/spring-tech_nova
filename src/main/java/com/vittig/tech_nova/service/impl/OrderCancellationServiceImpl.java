@@ -24,7 +24,7 @@ public class OrderCancellationServiceImpl implements OrderCancellationService {
     public void cancelOrder(Long orderId) {
         Order order = orderService.getOrderByIdEntity(orderId);
         if(order.getOrderStatus() != OrderStatus.CREATED && order.getOrderStatus()  != OrderStatus.AWAITING_PAYMENT){
-            throw new InvalidStatusException("Order can not be cancelled!");
+            throw new InvalidStatusException("Order cannot be cancelled in its current status.");
         }
         for(OrderItem item : order.getOrderItemList()){
             this.inventoryService.increaseStock(item.getProduct().getId(), item.getQuantity());

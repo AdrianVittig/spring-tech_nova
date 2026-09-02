@@ -1,4 +1,4 @@
-package com.vittig.tech_nova.controller;
+package com.vittig.tech_nova.web.controller;
 
 import com.vittig.tech_nova.data.dto.user.CurrentUserDto;
 import com.vittig.tech_nova.service.contract.UserService;

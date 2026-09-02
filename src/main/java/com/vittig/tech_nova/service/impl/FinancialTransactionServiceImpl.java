@@ -10,9 +10,7 @@ import com.vittig.tech_nova.data.repo.FinancialTransactionRepository;
 import com.vittig.tech_nova.data.util.*;
 import com.vittig.tech_nova.service.contract.FinancialTransactionService;
 import com.vittig.tech_nova.service.contract.OrderService;
-import com.vittig.tech_nova.service.exception.InvalidStatusException;
-import com.vittig.tech_nova.service.exception.InvalidTransactionStatusTransitionException;
-import com.vittig.tech_nova.service.exception.ObjectNotFoundException;
+import com.vittig.tech_nova.service.exception.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +34,7 @@ public class FinancialTransactionServiceImpl implements FinancialTransactionServ
     @Override
     public FTDto getTransactionById(Long id) {
         return modelMapper.map(this.financialTransactionRepository.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found!")
+                () -> new ObjectNotFoundException("Financial transaction not found.")
         ), FTDto.class);
     }
 
@@ -44,15 +42,15 @@ public class FinancialTransactionServiceImpl implements FinancialTransactionServ
     @Transactional
     public FTDto finalizeTransaction(Long id, UpdateFTDto ftDto) {
         FinancialTransaction financialTransaction = this.financialTransactionRepository.findById(id).orElseThrow(
-                () -> new ObjectNotFoundException("Object not found!")
+                () -> new ObjectNotFoundException("Financial transaction not found.")
         );
         if(ftDto.getTransactionStatus() == TransactionStatus.PENDING){
-            throw new InvalidTransactionStatusTransitionException("Invalid transaction status transition!");
+            throw new InvalidStatusException("Transaction status cannot be changed to PENDING.");
         }
         if(financialTransaction.getTransactionStatus() == TransactionStatus.PENDING){
             financialTransaction.setTransactionStatus(ftDto.getTransactionStatus());
         }else{
-            throw new InvalidTransactionStatusTransitionException("Invalid transaction status transition!");
+            throw new InvalidStatusException("Only a pending financial transaction can be finalized.");
         }
         return modelMapper.map(this.financialTransactionRepository.save(financialTransaction), FTDto.class);
     }
@@ -62,15 +60,15 @@ public class FinancialTransactionServiceImpl implements FinancialTransactionServ
     public FTDto recordPaymentIncome(Long orderId) {
         FinancialTransaction financialTransaction = new FinancialTransaction();
         if(orderId == null){
-            throw new ObjectNotFoundException("Null!");
+            throw new InvalidInputException("Order ID is required.");
         }
         financialTransaction.setTransactionType(TransactionType.INCOMING);
         Order order = this.orderService.getOrderByIdEntity(orderId);
         if(order.getOrderStatus() != OrderStatus.PAID){
-            throw new ObjectNotFoundException("Order is not paid!");
+            throw new InvalidStatusException("A payment transaction can only be recorded for a paid order.");
         }
         if(financialTransactionRepository.existsByOrderIdAndTransactionType(orderId, TransactionType.INCOMING)){
-            throw new ObjectNotFoundException("A FT exists already!");
+            throw new ConflictException("A financial transaction already exists for this order.");
         }
         financialTransaction.setAmount(order.getTotal());
         financialTransaction.setTransactionStatus(TransactionStatus.SUCCESSFUL);
@@ -83,11 +81,14 @@ public class FinancialTransactionServiceImpl implements FinancialTransactionServ
     @Override
     @Transactional
     public FTDto recordRefundOutcome(Refund refund) {
-        if(refund == null || refund.getRefundStatus() != RefundStatus.PENDING){
-            throw new InvalidStatusException("Not valid status");
+        if(refund == null){
+            throw new InvalidInputException("Refund is required.");
+        }
+        if(refund.getRefundStatus() != RefundStatus.PENDING){
+            throw new InvalidStatusException("A financial transaction can only be recorded for a pending refund.");
         }
         if(this.financialTransactionRepository.existsByRefundId(refund.getId())){
-            throw new InvalidStatusException("Not valid!");
+            throw new ConflictException("A financial transaction already exists for this refund.");
         }
         FinancialTransaction financialTransaction = new FinancialTransaction();
         financialTransaction.setTransactionType(TransactionType.OUTGOING);
@@ -103,13 +104,13 @@ public class FinancialTransactionServiceImpl implements FinancialTransactionServ
     @Transactional
     public FTDto recordPurchaseExpense(PurchaseOrder purchaseOrder, BigDecimal totalCost) {
         if(purchaseOrder == null || totalCost == null || totalCost.compareTo(BigDecimal.ZERO) <= 0){
-            throw new InvalidStatusException("Not valid input!");
+            throw new InvalidInputException("Purchase order and a positive total cost are required.");
         }
         if(this.financialTransactionRepository.existsByPurchaseOrderId(purchaseOrder.getId())){
-            throw new InvalidStatusException("Already exists!");
+            throw new ConflictException("A financial transaction already exists for this purchase order.");
         }
         if(purchaseOrder.getStatus() != PurchaseOrderStatus.CREATED){
-            throw new InvalidStatusException("Not valid status!");
+            throw new InvalidStatusException("A purchase expense can only be recorded for a purchase order in CREATED status.");
         }
         FinancialTransaction financialTransaction = new FinancialTransaction();
         financialTransaction.setTransactionType(TransactionType.OUTGOING);

@@ -20,7 +20,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public InventoryDto getInventoryByProductId(Long productId) {
         return modelMapper.map(this.inventoryRepository.findByProductId(productId).orElseThrow(
-                () -> new ObjectNotFoundException("Inventory not found!")
+                () -> new ObjectNotFoundException("Inventory not found for the specified product.")
         ), InventoryDto.class);
     }
 
@@ -28,13 +28,13 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional
     public Inventory decreaseStock(Long productId, Integer quantity) {
         if(quantity == null || quantity <= 0){
-            throw new InvalidQuantityException("Quantity must be a positive number");
+            throw new InvalidQuantityException("Quantity must be greater than zero.");
         }
         Inventory inventory = this.inventoryRepository.findByProductIdForUpdate(productId).orElseThrow(
-                () -> new ObjectNotFoundException("Inventory not found!")
+                () -> new ObjectNotFoundException("Inventory not found for the specified product.")
         );
         if(inventory.getStockQuantity() < quantity){
-            throw new InvalidQuantityException("Insufficient quantity!");
+            throw new InvalidQuantityException("Insufficient stock for the requested quantity.");
         }
         inventory.setStockQuantity(inventory.getStockQuantity() - quantity);
         return inventory;
@@ -44,10 +44,10 @@ public class InventoryServiceImpl implements InventoryService {
     @Transactional
     public Inventory increaseStock(Long productId, Integer quantity) {
         if(quantity == null || quantity <= 0){
-            throw new InvalidQuantityException("Quantity must be a positive number");
+            throw new InvalidQuantityException("Quantity must be greater than zero.");
         }
         Inventory inventory = this.inventoryRepository.findByProductIdForUpdate(productId).orElseThrow(
-                () -> new ObjectNotFoundException("Inventory not found!")
+                () -> new ObjectNotFoundException("Inventory not found for the specified product.")
         );
         inventory.setStockQuantity(inventory.getStockQuantity()+quantity);
         return inventory;
@@ -56,10 +56,10 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public boolean hasEnoughStock(Long productId, Integer requiredQuantity) {
         if(requiredQuantity == null || requiredQuantity <= 0){
-            throw new InvalidQuantityException("Quantity must be a positive number");
+            throw new InvalidQuantityException("Quantity must be greater than zero.");
         }
         Inventory inventory = this.inventoryRepository.findByProductId(productId).orElseThrow(
-                () -> new ObjectNotFoundException("Inventory not found!")
+                () -> new ObjectNotFoundException("Inventory not found for the specified product.")
         );
         return inventory.getStockQuantity() >= requiredQuantity;
     }
@@ -67,6 +67,6 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public Inventory getInventoryByProductIdForUpdate(Long productId) {
         return this.inventoryRepository.findByProductIdForUpdate(productId).orElseThrow(
-                () -> new ObjectNotFoundException("Inventory not found!"));
+                () -> new ObjectNotFoundException("Inventory not found for the specified product."));
     }
 }
