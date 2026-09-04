@@ -1,6 +1,5 @@
 package com.vittig.tech_nova.service.impl;
 
-import com.vittig.tech_nova.data.dto.refund.RefundDto;
 import com.vittig.tech_nova.data.entity.Refund;
 import com.vittig.tech_nova.data.entity.RefundItem;
 import com.vittig.tech_nova.data.util.RefundStatus;
@@ -23,12 +22,12 @@ public class RefundProcessingServiceImpl implements RefundProcessingService {
     @Transactional
     public void processRefund(Long refundId) {
         Refund refund = this.refundService.getRefundByIdEntityForUpdate(refundId);
-        if(refund.getRefundStatus() != RefundStatus.PENDING){
+        if (refund.getRefundStatus() != RefundStatus.PENDING) {
             throw new InvalidStatusException("Only a pending refund can be processed.");
         }
         this.budgetService.decreaseBalance(refund.getAmount());
         this.financialTransactionService.recordRefundOutcome(refund);
-        for(RefundItem refundItem : refund.getRefundItemList()){
+        for (RefundItem refundItem : refund.getRefundItemList()) {
             this.inventoryService.increaseStock(refundItem.getItem().getProduct().getId(), refundItem.getQuantity());
         }
         this.refundService.markRefundAsSuccessful(refund);

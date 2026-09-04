@@ -13,17 +13,14 @@ import com.vittig.tech_nova.service.contract.RefundService;
 import com.vittig.tech_nova.service.contract.UserService;
 import com.vittig.tech_nova.service.exception.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,9 +32,9 @@ public class RefundServiceImpl implements RefundService {
 
     @Override
     public RefundDto getRefundById(Long id, String email) {
-        Refund refund =this.refundRepository.findById(id).orElseThrow(
+        Refund refund = this.refundRepository.findById(id).orElseThrow(
                 () -> new ObjectNotFoundException("Refund not found."));
-        if(!Objects.equals(refund.getOrder().getUser().getEmail(), email)){
+        if (!Objects.equals(refund.getOrder().getUser().getEmail(), email)) {
             throw new ForbiddenOperationException("You do not have permission to access this refund.");
         }
         return modelMapper.map(refund, RefundDto.class);
@@ -46,7 +43,7 @@ public class RefundServiceImpl implements RefundService {
     @Override
     public List<RefundDto> getRefundsByOrderId(Long orderId, String email) {
         Order order = this.orderService.getOrderByIdEntity(orderId);
-        if(!Objects.equals(order.getUser().getEmail(), email)){
+        if (!Objects.equals(order.getUser().getEmail(), email)) {
             throw new ForbiddenOperationException("You do not have permission to access refunds for this order.");
         }
         return modelMapper.mapList(this.refundRepository.findAllRefundsByOrderId(orderId), RefundDto.class);
@@ -55,17 +52,17 @@ public class RefundServiceImpl implements RefundService {
     @Override
     @Transactional
     public RefundDto createRefundForOrder(CreateRefundDto createRefundDto, String email) {
-        if(createRefundDto == null || createRefundDto.getItems() == null || createRefundDto.getItems().isEmpty()){
+        if (createRefundDto == null || createRefundDto.getItems() == null || createRefundDto.getItems().isEmpty()) {
             throw new InvalidInputException("Refund must contain at least one item.");
         }
         Order order = this.orderService.getOrderByIdEntityForUpdate(createRefundDto.getOrderId());
-        if(order.getOrderStatus() != OrderStatus.PAID){
+        if (order.getOrderStatus() != OrderStatus.PAID) {
             throw new InvalidStatusException("Order must be paid before a refund can be requested.");
         }
 
         User user = this.userService.getUserEntityByEmail(email);
 
-        if(!Objects.equals(order.getUser().getEmail(), email)){
+        if (!Objects.equals(order.getUser().getEmail(), email)) {
             throw new ForbiddenOperationException("You do not have permission to request a refund for this order.");
         }
 
@@ -73,13 +70,13 @@ public class RefundServiceImpl implements RefundService {
         List<RefundItem> refundItems = new ArrayList<>();
         BigDecimal totalRefundAmount = BigDecimal.ZERO;
 
-        for(CreateRefundItemDto refundItemDto : createRefundDto.getItems()){
+        for (CreateRefundItemDto refundItemDto : createRefundDto.getItems()) {
             OrderItem orderItem = order.getOrderItemList().stream()
                     .filter(oI -> oI.getId().equals(refundItemDto.getOrderItemId()))
                     .findFirst().orElseThrow(
                             () -> new ObjectNotFoundException("Order item not found in this order.")
                     );
-            if(refundItemDto.getQuantity() == null || refundItemDto.getQuantity() <= 0){
+            if (refundItemDto.getQuantity() == null || refundItemDto.getQuantity() <= 0) {
                 throw new InvalidQuantityException("Refund quantity must be greater than zero.");
             }
 
@@ -91,7 +88,7 @@ public class RefundServiceImpl implements RefundService {
 
             Integer remainingQuantity = orderItem.getQuantity() - alreadyRefundedQuantity;
 
-            if(refundItemDto.getQuantity() > remainingQuantity){
+            if (refundItemDto.getQuantity() > remainingQuantity) {
                 throw new InvalidQuantityException("Refund quantity exceeds the remaining refundable quantity.");
             }
             RefundItem refundItem = new RefundItem();
@@ -127,11 +124,11 @@ public class RefundServiceImpl implements RefundService {
     @Override
     @Transactional
     public RefundDto markRefundAsSuccessful(Refund refund) {
-        if(refund.getRefundStatus() == RefundStatus.PENDING){
+        if (refund.getRefundStatus() == RefundStatus.PENDING) {
             refund.setRefundStatus(RefundStatus.SUCCESSFUL);
             refund.setRefundedAt(LocalDateTime.now());
             return modelMapper.map(this.refundRepository.save(refund), RefundDto.class);
-        }else{
+        } else {
             throw new InvalidStatusException("Only a pending refund can be marked as successful.");
         }
     }
@@ -140,10 +137,10 @@ public class RefundServiceImpl implements RefundService {
     @Transactional
     public void cancelRefund(Long refundId, String email) {
         Refund refund = this.getRefundByIdEntityForUpdate(refundId);
-        if(refund.getRefundStatus() != RefundStatus.PENDING){
+        if (refund.getRefundStatus() != RefundStatus.PENDING) {
             throw new InvalidStatusException("Only a pending refund can be cancelled.");
         }
-        if(!refund.getOrder().getUser().getEmail().equals(email)){
+        if (!refund.getOrder().getUser().getEmail().equals(email)) {
             throw new ForbiddenOperationException("You do not have permission to cancel this refund.");
         }
         refund.setRefundStatus(RefundStatus.CANCELLED);

@@ -9,13 +9,12 @@ import com.vittig.tech_nova.service.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final ModelMapperUtil modelMapper;
+
     @Override
     public CurrentUserDto getCurrentUser(String email) {
         User user = this.userRepository.findByEmail(email).orElseThrow(

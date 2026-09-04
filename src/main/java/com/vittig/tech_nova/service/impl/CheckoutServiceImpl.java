@@ -10,9 +10,7 @@ import com.vittig.tech_nova.data.entity.Payment;
 import com.vittig.tech_nova.data.util.PaymentStatus;
 import com.vittig.tech_nova.service.contract.*;
 import com.vittig.tech_nova.service.exception.ForbiddenOperationException;
-import com.vittig.tech_nova.service.exception.ObjectNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,11 +31,11 @@ public class CheckoutServiceImpl implements CheckoutService {
     public CheckoutDto processPayment(Long orderId, CreatePaymentDto createPaymentDto, String email) {
         CheckoutDto checkoutDto = new CheckoutDto();
         Order order = this.orderService.getOrderByIdEntity(orderId);
-        if(!Objects.equals(order.getUser().getEmail(), email)){
+        if (!Objects.equals(order.getUser().getEmail(), email)) {
             throw new ForbiddenOperationException("You do not have permission to perform this operation on this order.");
         }
         Payment payment = this.paymentService.createPaymentEntity(orderId, createPaymentDto);
-        if(payment.getPaymentStatus() == PaymentStatus.SUCCESSFUL){
+        if (payment.getPaymentStatus() == PaymentStatus.SUCCESSFUL) {
             SuccessfulPaymentResult res = completeSuccessfulPayment(payment);
             checkoutDto.setInvoiceId(res.getInvoiceId());
             checkoutDto.setBalanceAfterPayment(res.getBalanceAfterPayment());
@@ -49,7 +47,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         return checkoutDto;
     }
 
-    private SuccessfulPaymentResult completeSuccessfulPayment(Payment payment){
+    private SuccessfulPaymentResult completeSuccessfulPayment(Payment payment) {
         SuccessfulPaymentResult result = new SuccessfulPaymentResult();
         this.orderService.markOrderAsPaid(payment.getOrder());
         this.financialTransactionService.recordPaymentIncome(payment.getOrder().getId());
@@ -62,10 +60,10 @@ public class CheckoutServiceImpl implements CheckoutService {
 
     @Transactional
     @Override
-    public void finalizeDuePayments(){
+    public void finalizeDuePayments() {
         List<Payment> payments = this.paymentService.getDuePaymentEntities();
-        for(Payment payment : payments){
-            if(payment.getPaymentStatus() == PaymentStatus.PENDING){
+        for (Payment payment : payments) {
+            if (payment.getPaymentStatus() == PaymentStatus.PENDING) {
                 this.paymentService.markPaymentAsSuccessful(payment);
                 completeSuccessfulPayment(payment);
             }

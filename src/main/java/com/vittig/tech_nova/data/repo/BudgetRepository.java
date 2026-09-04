@@ -9,10 +9,10 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 
 public interface BudgetRepository extends JpaRepository<Budget, Long> {
-    @Query("SELECT b FROM Budget")
+    @Query("SELECT b FROM Budget b")
     Optional<Budget> getBudget();
 
-    @Query("SELECT b FROM Budget")
+    @Query("SELECT b FROM Budget b")
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Budget> getBudgetForUpdate();
 }

@@ -30,12 +30,12 @@ public class BudgetServiceImpl implements BudgetService {
     @Override
     @Transactional
     public BudgetDto increaseBalance(BigDecimal amount) {
-        Budget budget = this.budgetRepository.getBudgetForUpdate().orElseThrow(
-                () -> new ObjectNotFoundException("Budget not found.")
-        );
         if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0){
             throw new InvalidInputException("Amount must be greater than zero.");
         }
+        Budget budget = this.budgetRepository.getBudgetForUpdate().orElseThrow(
+                () -> new ObjectNotFoundException("Budget not found.")
+        );
         budget.setBalance(budget.getBalance().add(amount));
         return modelMapper.map(this.budgetRepository.save(budget), BudgetDto.class);
     }
@@ -43,12 +43,12 @@ public class BudgetServiceImpl implements BudgetService {
     @Override
     @Transactional
     public BudgetDto decreaseBalance(BigDecimal amount) {
-        Budget budget = this.budgetRepository.getBudgetForUpdate().orElseThrow(
-                () -> new ObjectNotFoundException("Budget not found.")
-        );
         if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0){
             throw new InvalidInputException("Amount must be greater than zero.");
         }
+        Budget budget = this.budgetRepository.getBudgetForUpdate().orElseThrow(
+                () -> new ObjectNotFoundException("Budget not found.")
+        );
         if(budget.getBalance().subtract(amount).compareTo(BigDecimal.ZERO) < 0){
             throw new InsufficientBalanceException("Insufficient budget balance.");
         }

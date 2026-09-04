@@ -6,12 +6,15 @@ import com.vittig.tech_nova.data.entity.Product;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 public interface ProductService {
     List<ProductDto> getAllProducts();
+
     ProductDto getProductById(Long id);
+
     ProductDto createProduct(CreateProductDto createProductDto);
+
     Product getProductEntityById(Long id);
+
     BigDecimal updateAverageCost(Long productId, BigDecimal newCost);
 }

@@ -2,7 +2,6 @@ package com.vittig.tech_nova.data.entity;
 
 import com.vittig.tech_nova.data.util.PaymentMethod;
 import com.vittig.tech_nova.data.util.PaymentStatus;
-import com.vittig.tech_nova.data.util.TransactionStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,7 +16,7 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Payment extends BaseEntity{
+public class Payment extends BaseEntity {
     private LocalDateTime time;
     @Enumerated(EnumType.STRING)
     private PaymentMethod paymentMethod;

@@ -1,6 +1,5 @@
 package com.vittig.tech_nova.data.dto.payment;
 
-import com.vittig.tech_nova.data.entity.Order;
 import com.vittig.tech_nova.data.util.PaymentMethod;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

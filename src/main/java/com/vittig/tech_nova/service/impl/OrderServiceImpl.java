@@ -3,7 +3,6 @@ package com.vittig.tech_nova.service.impl;
 import com.vittig.tech_nova.data.dto.order.CreateOrderDto;
 import com.vittig.tech_nova.data.dto.order.OrderDto;
 import com.vittig.tech_nova.data.dto.order.OrderItemDto;
-import com.vittig.tech_nova.data.dto.user.CurrentUserDto;
 import com.vittig.tech_nova.data.entity.Order;
 import com.vittig.tech_nova.data.entity.OrderItem;
 import com.vittig.tech_nova.data.entity.Product;
@@ -65,29 +64,29 @@ public class OrderServiceImpl implements OrderService {
         order.setCreatedAt(LocalDateTime.now());
         User user = this.userService.getUserEntityByEmail(email);
         order.setUser(user);
-        if(createOrderDto.getItems() == null || createOrderDto.getItems().isEmpty()){
+        if (createOrderDto.getItems() == null || createOrderDto.getItems().isEmpty()) {
             throw new InvalidInputException("Order must contain at least one item.");
         }
-       for(OrderItemDto item: createOrderDto.getItems()){
-           Product product = this.productRepository.findById(item.getProductId()).orElseThrow(
-                   () -> new ObjectNotFoundException("Product not found.")
-           );
-           if(item.getQuantity() == null || item.getQuantity() <= 0){
-               throw new InvalidQuantityException("Order item quantity must be greater than zero.");
-           }
-           BigDecimal priceToSell = this.pricingService.calculateSellingPrice(product.getPriceToBuyFromReseller());
-           total = total.add(priceToSell.multiply(BigDecimal.valueOf(item.getQuantity())));
-           OrderItem orderItem = new OrderItem();
-           orderItem.setProduct(product);
-           orderItem.setQuantity(item.getQuantity());
-           orderItem.setUnitPriceSnapshot(priceToSell);
-           orderItem.setOrder(order);
-           order.getOrderItemList().add(orderItem);
-           inventoryService.decreaseStock(product.getId(), item.getQuantity());
-       }
-       order.setTotal(total);
-       this.orderRepository.save(order);
-       return modelMapper.map(order, OrderDto.class);
+        for (OrderItemDto item : createOrderDto.getItems()) {
+            Product product = this.productRepository.findById(item.getProductId()).orElseThrow(
+                    () -> new ObjectNotFoundException("Product not found.")
+            );
+            if (item.getQuantity() == null || item.getQuantity() <= 0) {
+                throw new InvalidQuantityException("Order item quantity must be greater than zero.");
+            }
+            BigDecimal priceToSell = this.pricingService.calculateSellingPrice(product.getPriceToBuyFromReseller());
+            total = total.add(priceToSell.multiply(BigDecimal.valueOf(item.getQuantity())));
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProduct(product);
+            orderItem.setQuantity(item.getQuantity());
+            orderItem.setUnitPriceSnapshot(priceToSell);
+            orderItem.setOrder(order);
+            order.getOrderItemList().add(orderItem);
+            inventoryService.decreaseStock(product.getId(), item.getQuantity());
+        }
+        order.setTotal(total);
+        this.orderRepository.save(order);
+        return modelMapper.map(order, OrderDto.class);
     }
 
     @Override
@@ -99,8 +98,8 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void markOrderAsPaid(Order order){
-        if(order.getOrderStatus() == OrderStatus.AWAITING_PAYMENT){
+    public void markOrderAsPaid(Order order) {
+        if (order.getOrderStatus() == OrderStatus.AWAITING_PAYMENT) {
             order.setOrderStatus(OrderStatus.PAID);
         }
     }
